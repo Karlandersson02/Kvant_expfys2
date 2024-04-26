@@ -17,7 +17,8 @@ TOPP4_1_PATH = r'.\KvantMätningar\topp4_1.xlsx'
 TOPP4_2_PATH = r'.\KvantMätningar\topp4_2.xlsx'
 TOPP4_3_PATH = r'.\KvantMätningar\topp4_3.xlsx'
 
-B1, A1 = (608,616), 100*1e-12
+B0, A0 = (600, 608), 500*1e-12
+B1, A1 = (608,616), 1000*1e-12
 B2, A2 = (616,624), 600*1e-12
 B3, A3 = (624,632), 600*1e-12
 B4, A4 = (632,641), 500*1e-12
@@ -31,7 +32,7 @@ B11, A11 = (696,704), 500*1e-12
 B12, A12 = (704,714), 500*1e-12
 B13, A13 = (726,734), 530*1e-12
 B14, A14 = (736,744), 520*1e-12
-Bs, As = [B1,B2,B3,B4,B5,B6,B7,B8,B9,B10,B11,B12,B13,B14], [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]
+Bs, As = [B0,B1,B2,B3,B4,B5,B6,B7,B8,B9,B10,B11,B12,B13,B14], [A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]
 
 class Measurement:
     def __init__(self, path):
@@ -163,7 +164,6 @@ class Measurement_group:
             print(wvl, ', ', f'{info[wvl]:.4e}')
     
     def get_error(self, *args):
-        self.find_peaks(*args)
         wvls = self.averaged_data['Wavelength']
         curs = self.averaged_data['Current']
         ys = [modeling.models.Gaussian1D(*params)(wvls) for params in self.params_list]
@@ -192,7 +192,15 @@ class Measurement_group:
 
 HEL = Measurement_group(HEL1_PATH, HEL2_PATH, HEL3_PATH, offset=-482e-12)
 HEL.find_peaks(Bs, As)
-print(*HEL.get_current(offset=0), sep='\n')
+print(HEL.params_list[0])
+HEL.get_error(Bs)
+params_list = []
+for i in range(len(HEL.params_list)):
+    if i!=2:
+        params_list.append(HEL.params_list[i])
 energies = HEL.get_energy_diff(*sorted([params[1]*1e-9 for params in HEL.params_list[:-2]], key=lambda x: -x))
+# HEL.plot_peaks()
+# print(*HEL.get_current(offset=0), sep='\n')
+# energies = HEL.get_energy_diff(*sorted([params[1]*1e-9 for params in HEL.params_list[:-2]], key=lambda x: -x))
 print(*energies, sep=' | ')
 print(*HEL.get_energy(*energies), sep=' | ')
